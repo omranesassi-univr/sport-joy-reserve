@@ -10,6 +10,7 @@ import CourtDetail from "./pages/CourtDetail.tsx";
 import Owner from "./pages/Owner.tsx";
 import Bookings from "./pages/Bookings.tsx";
 import Academy from "./pages/Academy.tsx";
+import PadelCoaching from "./pages/PadelCoaching.tsx";
 import { BookingProvider } from "./context/BookingContext";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/bookings" element={<Bookings />} />
             <Route path="/owner" element={<Owner />} />
             <Route path="/academy" element={<Academy />} />
+            <Route path="/padel-coaching" element={<PadelCoaching />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
