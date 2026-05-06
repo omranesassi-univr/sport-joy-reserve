@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import cafeImg from "@/assets/cafe.jpg";
 import academyImg from "@/assets/academy.jpg";
 import { Coffee, Fuel, Droplets, Wrench, GraduationCap, Users } from "lucide-react";
@@ -50,8 +51,9 @@ export const Ecosystem = () => {
           </div>
         ))}
 
-        <div
-          className="md:col-span-2 rounded-2xl overflow-hidden relative min-h-[280px] group"
+        <Link
+          to="/academy"
+          className="md:col-span-2 rounded-2xl overflow-hidden relative min-h-[280px] group block hover:ring-2 hover:ring-primary/50 transition"
           style={{ backgroundImage: `url(${academyImg})`, backgroundSize: "cover", backgroundPosition: "center" }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
@@ -61,8 +63,11 @@ export const Ecosystem = () => {
             <p className="text-muted-foreground">
               Inscrivez vos enfants à nos sessions d'entraînement encadrées par des coachs diplômés.
             </p>
+            <span className="mt-4 text-xs font-bold uppercase tracking-widest text-primary">
+              Découvrir →
+            </span>
           </div>
-        </div>
+        </Link>
       </div>
     </section>
   );
