@@ -5,6 +5,7 @@ const links = [
   { to: "/courts", label: "Réserver" },
   { to: "/bookings", label: "Mes Résas" },
   { to: "/academy", label: "Académie" },
+  { to: "/padel-coaching", label: "Coaching Padel" },
   { to: "/owner", label: "Espace Propriétaire" },
   { to: "/#ecosystem", label: "Écosystème" },
 ];
