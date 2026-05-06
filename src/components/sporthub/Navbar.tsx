@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 const links = [
   { to: "/courts", label: "Réserver" },
   { to: "/bookings", label: "Mes Résas" },
+  { to: "/academy", label: "Académie" },
   { to: "/owner", label: "Espace Propriétaire" },
   { to: "/#ecosystem", label: "Écosystème" },
 ];
