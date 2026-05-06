@@ -5,6 +5,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import Courts from "./pages/Courts.tsx";
+import CourtDetail from "./pages/CourtDetail.tsx";
+import Owner from "./pages/Owner.tsx";
+import Bookings from "./pages/Bookings.tsx";
+import { BookingProvider } from "./context/BookingContext";
 
 const queryClient = new QueryClient();
 
@@ -14,11 +19,17 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <BookingProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/courts" element={<Courts />} />
+            <Route path="/courts/:id" element={<CourtDetail />} />
+            <Route path="/bookings" element={<Bookings />} />
+            <Route path="/owner" element={<Owner />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BookingProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
