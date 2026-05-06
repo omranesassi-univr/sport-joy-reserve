@@ -9,6 +9,7 @@ import Courts from "./pages/Courts.tsx";
 import CourtDetail from "./pages/CourtDetail.tsx";
 import Owner from "./pages/Owner.tsx";
 import Bookings from "./pages/Bookings.tsx";
+import Academy from "./pages/Academy.tsx";
 import { BookingProvider } from "./context/BookingContext";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/courts/:id" element={<CourtDetail />} />
             <Route path="/bookings" element={<Bookings />} />
             <Route path="/owner" element={<Owner />} />
+            <Route path="/academy" element={<Academy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
