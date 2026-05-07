@@ -4,6 +4,7 @@ import Navbar from "@/components/sporthub/Navbar";
 import Footer from "@/components/sporthub/Footer";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useBookings } from "@/context/BookingContext";
 import padelImg from "@/assets/padel-coaching.jpg";
 
 const coaches = [
@@ -57,17 +58,38 @@ const PadelCoaching = () => {
   const [cursor, setCursor] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [slot, setSlot] = useState<string | null>(null);
+  const { addBooking, isBooked } = useBookings();
 
   const cells = useMemo(() => buildCalendar(cursor), [cursor]);
+
+  const slugify = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-");
 
   const reserve = () => {
     if (!selectedDate || !slot) {
       toast.error("Choisissez une date et un créneau.");
       return;
     }
+    const currentPack = packs.find((p) => p.id === pack)!;
+    const courtId = `padel-coaching-${slugify(coach)}-${pack}`;
+    const dateStr = selectedDate.toISOString().slice(0, 10);
+    if (isBooked(courtId, dateStr, slot)) {
+      toast.error("Ce créneau est déjà réservé.");
+      return;
+    }
+    addBooking({
+      courtId,
+      courtName: `Masterclass Padel — ${coach} (${currentPack.title})`,
+      city: "Coaching SportHub",
+      sport: "padel",
+      date: dateStr,
+      slot,
+      price: currentPack.price,
+    });
     toast.success(
       `Séance réservée avec ${coach} le ${selectedDate.toLocaleDateString("fr-FR")} à ${slot}.`,
     );
+    setSlot(null);
   };
 
   return (
