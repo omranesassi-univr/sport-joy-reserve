@@ -1,5 +1,8 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 
 const links = [
   { to: "/courts", label: "Réserver" },
@@ -11,6 +14,20 @@ const links = [
 ];
 
 export const Navbar = () => {
+  const navigate = useNavigate();
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <nav className="container flex h-16 items-center justify-between">
@@ -34,9 +51,19 @@ export const Navbar = () => {
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" className="hidden sm:inline-flex font-bold uppercase tracking-wide text-xs">
-            Connexion
-          </Button>
+          {session ? (
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="hidden sm:inline-flex font-bold uppercase tracking-wide text-xs"
+            >
+              Déconnexion
+            </Button>
+          ) : (
+            <Button variant="ghost" asChild className="hidden sm:inline-flex font-bold uppercase tracking-wide text-xs">
+              <Link to="/auth">Connexion</Link>
+            </Button>
+          )}
           <Button variant="hero" size="sm" asChild>
             <Link to="/courts">Réserver</Link>
           </Button>
