@@ -67,7 +67,8 @@ const Auth = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword(parsed.data);
+    const { email, password } = parsed.data;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast.error(error.message.includes("Invalid") ? "Identifiants incorrects" : error.message);
