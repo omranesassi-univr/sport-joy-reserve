@@ -52,13 +52,18 @@ export const Navbar = () => {
         </div>
         <div className="flex items-center gap-3">
           {session ? (
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              className="hidden sm:inline-flex font-bold uppercase tracking-wide text-xs"
-            >
-              Déconnexion
-            </Button>
+            <>
+              <Button variant="ghost" asChild className="hidden sm:inline-flex font-bold uppercase tracking-wide text-xs">
+                <Link to="/account">Mon Compte</Link>
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className="hidden sm:inline-flex font-bold uppercase tracking-wide text-xs"
+              >
+                Déconnexion
+              </Button>
+            </>
           ) : (
             <Button variant="ghost" asChild className="hidden sm:inline-flex font-bold uppercase tracking-wide text-xs">
               <Link to="/auth">Connexion</Link>
