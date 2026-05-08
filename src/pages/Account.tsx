@@ -105,6 +105,23 @@ const Account = () => {
   const goal = 1500;
   const progress = Math.min(100, Math.round((points / goal) * 100));
 
+  const currentTier: Tier = points >= 1501 ? "OR" : points >= 501 ? "ARGENT" : "BRONZE";
+  const nextTier: Tier | null = currentTier === "BRONZE" ? "ARGENT" : currentTier === "ARGENT" ? "OR" : null;
+  const nextThreshold = nextTier === "ARGENT" ? 501 : nextTier === "OR" ? 1500 : null;
+  const pointsToNext = nextThreshold ? Math.max(0, nextThreshold - points) : 0;
+
+  const pointsHistory = bookings.slice(0, 8).map((b) => ({
+    date: b.date,
+    action: `Réservation ${b.courtName}`,
+    delta: 50 + Math.floor((b.price || 0) / 2),
+  }));
+  let running = points;
+  const historyWithBalance = pointsHistory.map((h) => {
+    const row = { ...h, balance: running };
+    running -= h.delta;
+    return row;
+  });
+
   const initials = (profile?.full_name || session?.user.email || "U")
     .split(" ")
     .map((s) => s[0])
@@ -160,7 +177,7 @@ const Account = () => {
               <TabsList className="grid grid-cols-4 w-full">
                 <TabsTrigger value="info">Infos</TabsTrigger>
                 <TabsTrigger value="history">Historique</TabsTrigger>
-                <TabsTrigger value="payments">Paiements</TabsTrigger>
+                <TabsTrigger value="subscription">Abonnement</TabsTrigger>
                 <TabsTrigger value="logout">Quitter</TabsTrigger>
               </TabsList>
 
@@ -199,11 +216,103 @@ const Account = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="payments" className="mt-4">
+              <TabsContent value="subscription" className="mt-4 space-y-6">
+                {/* Current level summary */}
                 <Card>
-                  <CardHeader><CardTitle>Paiements et factures</CardTitle></CardHeader>
+                  <CardContent className="pt-6 space-y-4">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div>
+                        <div className="text-xs font-bold uppercase tracking-widest text-primary">Niveau Actuel</div>
+                        <div className="text-display text-3xl mt-1">{currentTier}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl font-black">{points} pts</div>
+                        {nextTier && (
+                          <div className="text-xs text-muted-foreground">Prochain palier : {nextTier} ({nextThreshold} pts)</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="h-2 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
+                    </div>
+                    {nextTier ? (
+                      <p className="text-sm text-muted-foreground">
+                        Plus que <span className="font-bold text-foreground">{pointsToNext} points</span> pour débloquer les avantages exclusifs {nextTier} !
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Vous avez atteint le niveau maximum 🎉</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Tier cards */}
+                <div className="grid md:grid-cols-3 gap-4">
+                  {TIERS.map((tier) => {
+                    const completed = points > (tier.max ?? Infinity);
+                    const active = tier.name === currentTier;
+                    const range = tier.max ? `${tier.min} - ${tier.max} pts` : `${tier.min}+ pts`;
+                    return (
+                      <Card
+                        key={tier.name}
+                        className={active ? "border-primary ring-2 ring-primary/30" : ""}
+                      >
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-xl">{tier.name}</CardTitle>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                              {completed ? "Complété" : active ? "Actif" : "À débloquer"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{range}</p>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-2 text-sm">
+                            {tier.perks.map((p) => (
+                              <li key={p.label} className={`flex items-start gap-2 ${p.locked ? "opacity-60" : ""}`}>
+                                <span>{p.locked ? "🔒" : active || completed ? "✓" : "★"}</span>
+                                <span>{p.label}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Points history */}
+                <Card>
+                  <CardHeader><CardTitle>Historique des Points</CardTitle></CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground">Total dépensé : <span className="font-bold text-foreground">{stats.spent} TND</span></p>
+                    {historyWithBalance.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Aucun point gagné pour le moment.</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-left text-xs uppercase text-muted-foreground border-b border-border">
+                              <th className="py-2">Date</th>
+                              <th className="py-2">Action</th>
+                              <th className="py-2 text-right">Points</th>
+                              <th className="py-2 text-right">Solde</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {historyWithBalance.map((h, i) => (
+                              <tr key={i} className="border-b border-border/50">
+                                <td className="py-2">{h.date}</td>
+                                <td className="py-2">{h.action}</td>
+                                <td className="py-2 text-right text-primary font-bold">+{h.delta} pts</td>
+                                <td className="py-2 text-right">{h.balance} pts</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    <div className="mt-4 text-sm text-muted-foreground">
+                      Total dépensé : <span className="font-bold text-foreground">{stats.spent} TND</span>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
