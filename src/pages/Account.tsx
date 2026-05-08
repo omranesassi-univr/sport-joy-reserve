@@ -10,6 +10,40 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBookings } from "@/context/BookingContext";
 import { toast } from "sonner";
 
+type Tier = "BRONZE" | "ARGENT" | "OR";
+const TIERS: { name: Tier; min: number; max: number | null; perks: { label: string; locked?: boolean }[] }[] = [
+  {
+    name: "BRONZE",
+    min: 0,
+    max: 500,
+    perks: [
+      { label: "Accès standard aux terrains" },
+      { label: "Système de réservation classique" },
+    ],
+  },
+  {
+    name: "ARGENT",
+    min: 501,
+    max: 1500,
+    perks: [
+      { label: "5% de réduction sur toutes les réservations" },
+      { label: "Support client prioritaire" },
+      { label: "Accès aux événements privés", locked: true },
+    ],
+  },
+  {
+    name: "OR",
+    min: 1501,
+    max: null,
+    perks: [
+      { label: "10% de réduction permanente" },
+      { label: "Réservation prioritaire (24h avant)" },
+      { label: "Bons de carburant partenaires" },
+      { label: "Accès anticipé aux nouveaux terrains" },
+    ],
+  },
+];
+
 type Profile = { full_name: string | null; phone: string | null };
 
 const Account = () => {
