@@ -3,10 +3,10 @@ import cafeImg from "@/assets/cafe.jpg";
 import academyImg from "@/assets/academy.jpg";
 import { Coffee, Fuel, Droplets, Wrench, GraduationCap, Users } from "lucide-react";
 
-const services = [
+const services: { icon: typeof Coffee; title: string; desc: string; to?: string }[] = [
   { icon: Coffee, title: "Café & Restauration", desc: "Commandez avant le match, retrait sur place." },
   { icon: Fuel, title: "Station Carburant", desc: "Prix en temps réel, bons fidélité." },
-  { icon: Droplets, title: "Lavage Auto", desc: "Pendant que vous jouez, on lave votre voiture." },
+  { icon: Droplets, title: "Lavage Auto", desc: "Pendant que vous jouez, on lave votre voiture.", to: "/carwash" },
   { icon: Wrench, title: "Vidange & Réparation", desc: "Centre auto partenaire en un clic." },
   { icon: GraduationCap, title: "Académie Enfants", desc: "Inscriptions weekend, suivi de progression." },
   { icon: Users, title: "Matchmaking", desc: "Trouvez vos partenaires de niveau équivalent." },
@@ -40,16 +40,22 @@ export const Ecosystem = () => {
           </div>
         </div>
 
-        {services.slice(1, 5).map(({ icon: Icon, title, desc }) => (
-          <div
-            key={title}
-            className="bg-card border border-border rounded-2xl p-6 hover:border-primary/50 transition-colors"
-          >
-            <Icon className="size-7 text-primary mb-4" />
-            <h3 className="font-bold text-lg">{title}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{desc}</p>
-          </div>
-        ))}
+        {services.slice(1, 5).map(({ icon: Icon, title, desc, to }) => {
+          const className =
+            "bg-card border border-border rounded-2xl p-6 hover:border-primary/50 transition-colors block";
+          const content = (
+            <>
+              <Icon className="size-7 text-primary mb-4" />
+              <h3 className="font-bold text-lg">{title}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{desc}</p>
+            </>
+          );
+          return to ? (
+            <Link key={title} to={to} className={className}>{content}</Link>
+          ) : (
+            <div key={title} className={className}>{content}</div>
+          );
+        })}
 
         <Link
           to="/academy"
