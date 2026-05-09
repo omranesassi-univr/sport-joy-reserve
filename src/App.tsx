@@ -13,6 +13,7 @@ import Academy from "./pages/Academy.tsx";
 import PadelCoaching from "./pages/PadelCoaching.tsx";
 import Auth from "./pages/Auth.tsx";
 import Account from "./pages/Account.tsx";
+import CarWash from "./pages/CarWash.tsx";
 import { BookingProvider } from "./context/BookingContext";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/padel-coaching" element={<PadelCoaching />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/account" element={<Account />} />
+            <Route path="/carwash" element={<CarWash />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
