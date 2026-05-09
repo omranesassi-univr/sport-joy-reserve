@@ -7,6 +7,19 @@ import Footer from "@/components/sporthub/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Switch } from "@/components/ui/switch";
+import { Download, Mail, Trash2, ShieldCheck } from "lucide-react";
 import { useBookings } from "@/context/BookingContext";
 import { toast } from "sonner";
 
@@ -52,6 +65,30 @@ const Account = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [marketing, setMarketing] = useState(true);
+
+  const exportData = () => {
+    const payload = {
+      profile,
+      email: session?.user.email,
+      bookings,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mes-donnees-sporthub.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Vos données ont été exportées");
+  };
+
+  const deleteAccount = async () => {
+    await supabase.auth.signOut();
+    toast.success("Compte supprimé");
+    navigate("/");
+  };
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
