@@ -416,6 +416,74 @@ const Account = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Données & Confidentialité */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="size-5 text-primary" />
+              Données & Confidentialité
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="divide-y divide-border">
+            <div className="flex items-center justify-between gap-4 py-4 first:pt-0">
+              <div className="flex items-start gap-3">
+                <Download className="size-5 text-primary mt-0.5" />
+                <div>
+                  <div className="font-bold">Télécharger mes données</div>
+                  <div className="text-sm text-muted-foreground">Recevez toutes vos données en format JSON</div>
+                </div>
+              </div>
+              <Button variant="outline" onClick={exportData}>Exporter</Button>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 py-4">
+              <div className="flex items-start gap-3">
+                <Mail className="size-5 text-primary mt-0.5" />
+                <div>
+                  <div className="font-bold">Communications marketing</div>
+                  <div className="text-sm text-muted-foreground">Recevoir des offres et promotions SportHub</div>
+                </div>
+              </div>
+              <Switch
+                checked={marketing}
+                onCheckedChange={(v) => {
+                  setMarketing(v);
+                  toast.success(v ? "Communications activées" : "Communications désactivées");
+                }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 py-4 last:pb-0">
+              <div className="flex items-start gap-3">
+                <Trash2 className="size-5 text-destructive mt-0.5" />
+                <div>
+                  <div className="font-bold">Supprimer mon compte</div>
+                  <div className="text-sm text-muted-foreground">Action irréversible — toutes vos données seront effacées</div>
+                </div>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">Supprimer</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer votre compte ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible. Toutes vos réservations, paiements et données seront supprimés.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={deleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Confirmer la suppression
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardContent>
+        </Card>
       </main>
       <Footer />
     </div>
