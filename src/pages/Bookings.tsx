@@ -229,7 +229,9 @@ const Bookings = () => {
                           <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
                             {p.sport === "football" ? "⚽ Football" : "🎾 Padel"}
                           </span>
-                          <span className="text-[10px] font-semibold text-muted-foreground">{p.distanceKm > 0 ? `${p.distanceKm} km` : "—"}</span>
+                          {p.joinedByMe && (
+                            <span className="text-[10px] font-semibold text-primary">✓ Inscrit</span>
+                          )}
                         </div>
                         <div className="font-bold text-lg">{p.venue}</div>
                         <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
