@@ -106,6 +106,18 @@ const Bookings = () => {
     loadPartners(userId);
   };
 
+  const leave = async (id: string) => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("partner_participants")
+      .delete()
+      .eq("partner_id", id)
+      .eq("user_id", userId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Vous avez quitté la partie");
+    loadPartners(userId);
+  };
+
   const publish = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) { toast.error("Connectez-vous pour publier"); return; }
