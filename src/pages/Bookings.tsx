@@ -106,6 +106,18 @@ const Bookings = () => {
     loadPartners(userId);
   };
 
+  const leave = async (id: string) => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("partner_participants")
+      .delete()
+      .eq("partner_id", id)
+      .eq("user_id", userId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Vous avez quitté la partie");
+    loadPartners(userId);
+  };
+
   const publish = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) { toast.error("Connectez-vous pour publier"); return; }
@@ -242,9 +254,15 @@ const Bookings = () => {
                       <div className="flex items-center gap-2 text-sm">
                         <Users className="size-4 text-primary" /> {p.joined}/{p.total} {p.note ? `· ${p.note}` : "joueurs inscrits"}
                       </div>
-                      <Button variant="hero" disabled={full} onClick={() => join(p.id)}>
-                        {full ? "Complet" : "Rejoindre"}
-                      </Button>
+                      {p.joinedByMe ? (
+                        <Button variant="outline" onClick={() => leave(p.id)}>
+                          Se désinscrire
+                        </Button>
+                      ) : (
+                        <Button variant="hero" disabled={full} onClick={() => join(p.id)}>
+                          {full ? "Complet" : "Rejoindre"}
+                        </Button>
+                      )}
                     </div>
                   );
                 })}
