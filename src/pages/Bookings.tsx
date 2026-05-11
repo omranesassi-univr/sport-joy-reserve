@@ -101,7 +101,14 @@ const Bookings = () => {
   const join = async (id: string) => {
     if (!userId) { toast.error("Connectez-vous pour rejoindre"); return; }
     const { error } = await supabase.from("partner_participants").insert({ partner_id: id, user_id: userId });
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      if (error.code === "23505" || error.message.includes("uniq_partner_user")) {
+        toast.error("Vous êtes déjà inscrit à cette annonce");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
     toast.success("Vous avez rejoint la partie ✅");
     loadPartners(userId);
   };
