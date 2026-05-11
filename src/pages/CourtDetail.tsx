@@ -43,9 +43,9 @@ const CourtDetail = () => {
     );
   }
 
-  const confirm = () => {
+  const confirm = async () => {
     if (!slot) return;
-    const b = addBooking({
+    const b = await addBooking({
       courtId: court.id,
       courtName: court.name,
       city: court.city,
@@ -54,6 +54,7 @@ const CourtDetail = () => {
       slot,
       price: court.pricePerHour,
     });
+    if (!b) return;
     toast({ title: "Réservation confirmée ✅", description: `${court.name} — ${date} à ${slot}` });
     navigate(`/bookings?new=${b.id}`);
   };

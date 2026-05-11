@@ -4,7 +4,8 @@ import Footer from "@/components/sporthub/Footer";
 import { Button } from "@/components/ui/button";
 import { useBookings } from "@/context/BookingContext";
 import { Calendar, Clock, MapPin, Trash2, Users, SignalHigh, PlusCircle, Send, Filter } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,26 +14,21 @@ import { toast } from "sonner";
 
 type Partner = {
   id: string;
+  user_id: string;
   sport: "football" | "padel";
   venue: string;
-  distanceKm: number;
   date: string;
   level: "Débutant" | "Intermédiaire" | "Avancé";
   joined: number;
   total: number;
-  note?: string;
+  note?: string | null;
+  joinedByMe?: boolean;
 };
-
-const SEED: Partner[] = [
-  { id: "p1", sport: "football", venue: "Five Ariana - Terrain A", distanceKm: 7.2, date: "Samedi, 24 Octobre • 18:00", level: "Intermédiaire", joined: 3, total: 10 },
-  { id: "p2", sport: "padel", venue: "Padel House La Marsa", distanceKm: 2.4, date: "Demain • 10:30", level: "Avancé", joined: 3, total: 4, note: "1 place dispo!" },
-  { id: "p3", sport: "football", venue: "Sport City Ennasr", distanceKm: 5.8, date: "Lundi, 26 Octobre • 20:00", level: "Débutant", joined: 6, total: 12, note: "Besoin de monde!" },
-  { id: "p4", sport: "padel", venue: "The Padel Club Tunis", distanceKm: 1.2, date: "Mercredi • 19:00", level: "Intermédiaire", joined: 2, total: 4 },
-];
 
 const Bookings = () => {
   const { bookings, removeBooking } = useBookings();
-  const [partners, setPartners] = useState<Partner[]>(SEED);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
   const [filterSport, setFilterSport] = useState<string>("all");
   const [filterLevel, setFilterLevel] = useState<string>("all");
   const [filterDate, setFilterDate] = useState("");
@@ -47,6 +43,52 @@ const Bookings = () => {
     note: "",
   });
 
+  const loadPartners = async (uid: string | null) => {
+    const { data: parts } = await supabase
+      .from("partners")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!parts) return;
+    const ids = parts.map((p) => p.id);
+    const { data: pp } = ids.length
+      ? await supabase.from("partner_participants").select("partner_id, user_id").in("partner_id", ids)
+      : { data: [] as any[] };
+    const counts = new Map<string, number>();
+    const mine = new Set<string>();
+    (pp ?? []).forEach((r: any) => {
+      counts.set(r.partner_id, (counts.get(r.partner_id) ?? 0) + 1);
+      if (uid && r.user_id === uid) mine.add(r.partner_id);
+    });
+    setPartners(
+      parts.map((p: any) => ({
+        id: p.id,
+        user_id: p.user_id,
+        sport: p.sport,
+        venue: p.venue,
+        date: p.date,
+        level: p.level,
+        total: p.total,
+        note: p.note,
+        joined: counts.get(p.id) ?? 0,
+        joinedByMe: mine.has(p.id),
+      })),
+    );
+  };
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const uid = data.session?.user?.id ?? null;
+      setUserId(uid);
+      loadPartners(uid);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      const uid = session?.user?.id ?? null;
+      setUserId(uid);
+      loadPartners(uid);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
   const filtered = useMemo(() => {
     return partners.filter((p) => {
       if (filterSport !== "all" && p.sport !== filterSport) return false;
@@ -56,33 +98,34 @@ const Bookings = () => {
     });
   }, [partners, filterSport, filterLevel, filterDate]);
 
-  const join = (id: string) => {
-    setPartners((prev) =>
-      prev.map((p) => (p.id === id && p.joined < p.total ? { ...p, joined: p.joined + 1 } : p)),
-    );
+  const join = async (id: string) => {
+    if (!userId) { toast.error("Connectez-vous pour rejoindre"); return; }
+    const { error } = await supabase.from("partner_participants").insert({ partner_id: id, user_id: userId });
+    if (error) { toast.error(error.message); return; }
     toast.success("Vous avez rejoint la partie ✅");
+    loadPartners(userId);
   };
 
-  const publish = (e: React.FormEvent) => {
+  const publish = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) { toast.error("Connectez-vous pour publier"); return; }
     if (!form.venue || !form.date || !form.time) {
       toast.error("Renseignez le terrain, la date et l'heure");
       return;
     }
-    const newP: Partner = {
-      id: crypto.randomUUID(),
+    const { error } = await supabase.from("partners").insert({
+      user_id: userId,
       sport: form.sport,
       venue: form.venue,
-      distanceKm: 0,
       date: `${form.date} • ${form.time}`,
       level: form.level,
-      joined: 1,
       total: 1 + Number(form.missing || 1),
-      note: form.note || undefined,
-    };
-    setPartners((prev) => [newP, ...prev]);
+      note: form.note || null,
+    });
+    if (error) { toast.error(error.message); return; }
     toast.success("Annonce publiée ✅");
     setForm({ ...form, venue: "", date: "", time: "", note: "", missing: 1 });
+    loadPartners(userId);
   };
 
   return (
@@ -186,7 +229,9 @@ const Bookings = () => {
                           <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
                             {p.sport === "football" ? "⚽ Football" : "🎾 Padel"}
                           </span>
-                          <span className="text-[10px] font-semibold text-muted-foreground">{p.distanceKm > 0 ? `${p.distanceKm} km` : "—"}</span>
+                          {p.joinedByMe && (
+                            <span className="text-[10px] font-semibold text-primary">✓ Inscrit</span>
+                          )}
                         </div>
                         <div className="font-bold text-lg">{p.venue}</div>
                         <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
