@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/sporthub/Navbar";
 import Footer from "@/components/sporthub/Footer";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ type Partner = {
 
 const Bookings = () => {
   const { bookings, removeBooking } = useBookings();
+  const navigate = useNavigate();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [filterSport, setFilterSport] = useState<string>("all");
@@ -99,18 +101,37 @@ const Bookings = () => {
   }, [partners, filterSport, filterLevel, filterDate]);
 
   const join = async (id: string) => {
-    if (!userId) { toast.error("Connectez-vous pour rejoindre"); return; }
-    const { error } = await supabase.from("partner_participants").insert({ partner_id: id, user_id: userId });
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user?.id ?? userId;
+    if (!uid) {
+      toast.error("Session expirée", {
+        description: "Veuillez vous reconnecter pour rejoindre cette partie.",
+        action: { label: "Se reconnecter", onClick: () => navigate("/auth") },
+      });
+      return;
+    }
+    const { error } = await supabase.from("partner_participants").insert({ partner_id: id, user_id: uid });
     if (error) {
       if (error.code === "23505" || error.message.includes("uniq_partner_user")) {
         toast.error("Vous êtes déjà inscrit à cette annonce");
+      } else if (
+        error.code === "42501" ||
+        error.message.toLowerCase().includes("row-level security") ||
+        error.message.toLowerCase().includes("rls")
+      ) {
+        await supabase.auth.signOut();
+        setUserId(null);
+        toast.error("Permissions insuffisantes", {
+          description: "Votre session n'est plus valide. Reconnectez-vous pour rejoindre l'annonce.",
+          action: { label: "Se reconnecter", onClick: () => navigate("/auth") },
+        });
       } else {
         toast.error(error.message);
       }
       return;
     }
     toast.success("Vous avez rejoint la partie ✅");
-    loadPartners(userId);
+    loadPartners(uid);
   };
 
   const leave = async (id: string) => {
