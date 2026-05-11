@@ -254,9 +254,15 @@ const Bookings = () => {
                       <div className="flex items-center gap-2 text-sm">
                         <Users className="size-4 text-primary" /> {p.joined}/{p.total} {p.note ? `· ${p.note}` : "joueurs inscrits"}
                       </div>
-                      <Button variant="hero" disabled={full} onClick={() => join(p.id)}>
-                        {full ? "Complet" : "Rejoindre"}
-                      </Button>
+                      {p.joinedByMe ? (
+                        <Button variant="outline" onClick={() => leave(p.id)}>
+                          Se désinscrire
+                        </Button>
+                      ) : (
+                        <Button variant="hero" disabled={full} onClick={() => join(p.id)}>
+                          {full ? "Complet" : "Rejoindre"}
+                        </Button>
+                      )}
                     </div>
                   );
                 })}
