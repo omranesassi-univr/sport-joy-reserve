@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          city: string
+          court_id: string
+          court_name: string
+          created_at: string
+          date: string
+          id: string
+          price: number
+          slot: string
+          sport: string
+          user_id: string
+        }
+        Insert: {
+          city: string
+          court_id: string
+          court_name: string
+          created_at?: string
+          date: string
+          id?: string
+          price?: number
+          slot: string
+          sport: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          court_id?: string
+          court_name?: string
+          created_at?: string
+          date?: string
+          id?: string
+          price?: number
+          slot?: string
+          sport?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      partner_participants: {
+        Row: {
+          created_at: string
+          id: string
+          partner_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          partner_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          partner_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_participants_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          level: string
+          note: string | null
+          sport: string
+          total: number
+          user_id: string
+          venue: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          level: string
+          note?: string | null
+          sport: string
+          total: number
+          user_id: string
+          venue: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          level?: string
+          note?: string | null
+          sport?: string
+          total?: number
+          user_id?: string
+          venue?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
