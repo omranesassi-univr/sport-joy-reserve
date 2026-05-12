@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/sporthub/Navbar";
 import Footer from "@/components/sporthub/Footer";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,7 @@ const SLOTS = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "1
 const DAYS_FR = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
 const CarWash = () => {
+  const navigate = useNavigate();
   const [serviceId, setServiceId] = useState<string>("ext");
   const [model, setModel] = useState("");
   const [plate, setPlate] = useState("");
@@ -38,12 +41,33 @@ const CarWash = () => {
   const service = SERVICES.find((s) => s.id === serviceId)!;
   const selectedDay = days[dayOffset];
 
-  const confirm = () => {
+  const confirm = async () => {
     if (!model || !plate) {
       toast.error("Renseignez les informations du véhicule");
       return;
     }
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user.id;
+    if (!uid) {
+      toast.error("Connectez-vous pour réserver");
+      navigate("/auth");
+      return;
+    }
+    const dateStr = selectedDay.full.toISOString().slice(0, 10);
+    const { error } = await supabase.from("car_wash_bookings").insert({
+      user_id: uid,
+      service_id: service.id,
+      service_name: service.name,
+      price: service.price,
+      duration: service.duration,
+      vehicle_model: model,
+      vehicle_plate: plate,
+      date: dateStr,
+      slot,
+    });
+    if (error) { toast.error(error.message); return; }
     toast.success(`Réservation confirmée : ${service.name} le ${selectedDay.label} ${selectedDay.date} à ${slot}`);
+    setModel(""); setPlate("");
   };
 
   return (

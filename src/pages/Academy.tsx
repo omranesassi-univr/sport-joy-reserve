@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Clock, Info, Phone, GraduationCap } from "lucide-react";
 import Navbar from "@/components/sporthub/Navbar";
 import Footer from "@/components/sporthub/Footer";
@@ -58,6 +60,7 @@ const packOptions = [
 ];
 
 const Academy = () => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     childName: "",
     birthDate: "",
@@ -67,7 +70,7 @@ const Academy = () => {
     accept: false,
   });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.childName || !form.birthDate || !form.parentName || !form.phone || !form.pack) {
       toast.error("Merci de remplir tous les champs.");
@@ -77,6 +80,22 @@ const Academy = () => {
       toast.error("Vous devez accepter les conditions.");
       return;
     }
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user.id;
+    if (!uid) {
+      toast.error("Connectez-vous pour inscrire votre enfant");
+      navigate("/auth");
+      return;
+    }
+    const { error } = await supabase.from("academy_registrations").insert({
+      user_id: uid,
+      child_name: form.childName,
+      birth_date: form.birthDate,
+      parent_name: form.parentName,
+      phone: form.phone,
+      pack: form.pack,
+    });
+    if (error) { toast.error(error.message); return; }
     toast.success(`Inscription confirmée pour ${form.childName} 🎉`);
     setForm({ childName: "", birthDate: "", parentName: "", phone: "", pack: "", accept: false });
   };
