@@ -58,6 +58,8 @@ const TIERS: { name: Tier; min: number; max: number | null; perks: { label: stri
 ];
 
 type Profile = { full_name: string | null; phone: string | null };
+type CarWashRow = { id: string; service_name: string; price: number; vehicle_model: string; vehicle_plate: string; date: string; slot: string };
+type AcademyRow = { id: string; child_name: string; parent_name: string; pack: string; phone: string; created_at: string };
 
 const Account = () => {
   const navigate = useNavigate();
@@ -66,6 +68,8 @@ const Account = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [marketing, setMarketing] = useState(true);
+  const [carWashes, setCarWashes] = useState<CarWashRow[]>([]);
+  const [academy, setAcademy] = useState<AcademyRow[]>([]);
 
   const exportData = () => {
     const payload = {
@@ -109,6 +113,18 @@ const Account = () => {
         .maybeSingle();
       setProfile(data ?? { full_name: null, phone: null });
       setLoading(false);
+    })();
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+    (async () => {
+      const [{ data: cw }, { data: ac }] = await Promise.all([
+        supabase.from("car_wash_bookings").select("id, service_name, price, vehicle_model, vehicle_plate, date, slot").order("created_at", { ascending: false }),
+        supabase.from("academy_registrations").select("id, child_name, parent_name, pack, phone, created_at").order("created_at", { ascending: false }),
+      ]);
+      setCarWashes((cw as CarWashRow[]) ?? []);
+      setAcademy((ac as AcademyRow[]) ?? []);
     })();
   }, [session]);
 
@@ -231,26 +247,106 @@ const Account = () => {
               </TabsContent>
 
               <TabsContent value="history" className="mt-4">
-                <Card>
-                  <CardHeader><CardTitle>Historique des matchs</CardTitle></CardHeader>
-                  <CardContent className="space-y-3">
-                    {bookings.length === 0 && (
-                      <p className="text-sm text-muted-foreground">Aucune réservation pour le moment.</p>
-                    )}
-                    {bookings.slice(0, 10).map((b) => (
-                      <div key={b.id} className="flex items-center justify-between border border-border rounded-lg p-3">
-                        <div>
-                          <div className="font-bold">{b.courtName}</div>
-                          <div className="text-xs text-muted-foreground">{b.city} • {b.sport}</div>
-                        </div>
-                        <div className="text-right text-sm">
-                          <div>{b.date}</div>
-                          <div className="text-muted-foreground">{b.slot}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                <Tabs defaultValue="courts">
+                  <TabsList className="grid grid-cols-4 w-full">
+                    <TabsTrigger value="courts">Terrains</TabsTrigger>
+                    <TabsTrigger value="coaching">Coaching</TabsTrigger>
+                    <TabsTrigger value="carwash">Lavage</TabsTrigger>
+                    <TabsTrigger value="academy">Académie</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="courts" className="mt-4">
+                    <Card>
+                      <CardHeader><CardTitle>Réservations de terrains</CardTitle></CardHeader>
+                      <CardContent className="space-y-3">
+                        {bookings.filter((b) => !b.courtId.startsWith("padel-coaching-")).length === 0 && (
+                          <p className="text-sm text-muted-foreground">Aucune réservation.</p>
+                        )}
+                        {bookings.filter((b) => !b.courtId.startsWith("padel-coaching-")).slice(0, 10).map((b) => (
+                          <div key={b.id} className="flex items-center justify-between border border-border rounded-lg p-3">
+                            <div>
+                              <div className="font-bold">{b.courtName}</div>
+                              <div className="text-xs text-muted-foreground">{b.city} • {b.sport}</div>
+                            </div>
+                            <div className="text-right text-sm">
+                              <div>{b.date}</div>
+                              <div className="text-muted-foreground">{b.slot}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="coaching" className="mt-4">
+                    <Card>
+                      <CardHeader><CardTitle>Séances de coaching padel</CardTitle></CardHeader>
+                      <CardContent className="space-y-3">
+                        {bookings.filter((b) => b.courtId.startsWith("padel-coaching-")).length === 0 && (
+                          <p className="text-sm text-muted-foreground">Aucune séance de coaching.</p>
+                        )}
+                        {bookings.filter((b) => b.courtId.startsWith("padel-coaching-")).slice(0, 10).map((b) => (
+                          <div key={b.id} className="flex items-center justify-between border border-border rounded-lg p-3">
+                            <div>
+                              <div className="font-bold">{b.courtName}</div>
+                              <div className="text-xs text-muted-foreground">{b.price} DT</div>
+                            </div>
+                            <div className="text-right text-sm">
+                              <div>{b.date}</div>
+                              <div className="text-muted-foreground">{b.slot}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="carwash" className="mt-4">
+                    <Card>
+                      <CardHeader><CardTitle>Historique de lavage auto</CardTitle></CardHeader>
+                      <CardContent className="space-y-3">
+                        {carWashes.length === 0 && (
+                          <p className="text-sm text-muted-foreground">Aucun lavage réservé.</p>
+                        )}
+                        {carWashes.map((c) => (
+                          <div key={c.id} className="flex items-center justify-between border border-border rounded-lg p-3">
+                            <div>
+                              <div className="font-bold">{c.service_name}</div>
+                              <div className="text-xs text-muted-foreground">{c.vehicle_model} • {c.vehicle_plate}</div>
+                            </div>
+                            <div className="text-right text-sm">
+                              <div>{c.date}</div>
+                              <div className="text-muted-foreground">{c.slot} • {c.price} DT</div>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="academy" className="mt-4">
+                    <Card>
+                      <CardHeader><CardTitle>Inscriptions à l'académie</CardTitle></CardHeader>
+                      <CardContent className="space-y-3">
+                        {academy.length === 0 && (
+                          <p className="text-sm text-muted-foreground">Aucune inscription.</p>
+                        )}
+                        {academy.map((a) => (
+                          <div key={a.id} className="flex items-center justify-between border border-border rounded-lg p-3">
+                            <div>
+                              <div className="font-bold">{a.child_name}</div>
+                              <div className="text-xs text-muted-foreground">Parent : {a.parent_name} • {a.phone}</div>
+                            </div>
+                            <div className="text-right text-sm max-w-[55%]">
+                              <div className="font-bold">{a.pack}</div>
+                              <div className="text-muted-foreground text-xs">{new Date(a.created_at).toLocaleDateString("fr-FR")}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
               </TabsContent>
 
               <TabsContent value="subscription" className="mt-4 space-y-6">
