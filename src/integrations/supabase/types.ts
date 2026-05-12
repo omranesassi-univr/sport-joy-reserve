@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_registrations: {
+        Row: {
+          birth_date: string
+          child_name: string
+          created_at: string
+          id: string
+          pack: string
+          parent_name: string
+          phone: string
+          user_id: string
+        }
+        Insert: {
+          birth_date: string
+          child_name: string
+          created_at?: string
+          id?: string
+          pack: string
+          parent_name: string
+          phone: string
+          user_id: string
+        }
+        Update: {
+          birth_date?: string
+          child_name?: string
+          created_at?: string
+          id?: string
+          pack?: string
+          parent_name?: string
+          phone?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           city: string
@@ -50,6 +83,48 @@ export type Database = {
           slot?: string
           sport?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      car_wash_bookings: {
+        Row: {
+          created_at: string
+          date: string
+          duration: number
+          id: string
+          price: number
+          service_id: string
+          service_name: string
+          slot: string
+          user_id: string
+          vehicle_model: string
+          vehicle_plate: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          duration?: number
+          id?: string
+          price?: number
+          service_id: string
+          service_name: string
+          slot: string
+          user_id: string
+          vehicle_model: string
+          vehicle_plate: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          duration?: number
+          id?: string
+          price?: number
+          service_id?: string
+          service_name?: string
+          slot?: string
+          user_id?: string
+          vehicle_model?: string
+          vehicle_plate?: string
         }
         Relationships: []
       }
