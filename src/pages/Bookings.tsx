@@ -91,6 +91,34 @@ const Bookings = () => {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Realtime: refresh partners when participants or partners change
+  useEffect(() => {
+    const channel = supabase
+      .channel("partners-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "partner_participants" },
+        () => {
+          supabase.auth.getSession().then(({ data }) =>
+            loadPartners(data.session?.user?.id ?? null),
+          );
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "partners" },
+        () => {
+          supabase.auth.getSession().then(({ data }) =>
+            loadPartners(data.session?.user?.id ?? null),
+          );
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const filtered = useMemo(() => {
     return partners.filter((p) => {
       if (filterSport !== "all" && p.sport !== filterSport) return false;
